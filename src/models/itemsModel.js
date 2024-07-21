@@ -60,12 +60,12 @@ const itemSchema = new Schema({
       type: String,
     },
   ],
-  dates: [
-    {
-      type: Date,
-      required: true,
-    },
-  ],
+  // dates: [
+  //   {
+  //     type: Date,
+  //     required: true,
+  //   },
+  // ],
 });
 
 const Item = mongoose.model("Item", itemSchema);

@@ -103,12 +103,35 @@ exports.getAllClients = catchAsync(async (req, res, next) => {
 // * Create Client
 exports.createClient = catchAsync(async (req, res, next) => {
   try {
-    const client = await Client.create(req.body);
+    // Handle files (if any)
+    // const files = req.files;
+    // const fileUrls = files.map((file) => file.filename);
 
+    const imageFiles = req.files.bestWork ? req.files?.bestWork?.map((file) => file.filename) : [];
+
+    // Create client
+    const client = await Client.create({
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      userId: req.body.userId,
+      role: req.body.role,
+      workExperience: req.body.workExperience,
+      location: req.body.location,
+      contact: req.body.contact,
+      qId: req.body.qId,
+      crNo: req.body.crNo,
+      bestWork: imageFiles, // Store filenames of uploaded images
+      description: req.body.description,
+      availability: req.body.availability,
+    });
+
+    // Update user role
     await User.findByIdAndUpdate(req.body.userId, {
       role: "client",
-      clientId: client._id,
+      // clientId: client._id,
     });
+
     const newClient = await Client.findById(client._id).populate("role");
 
     res.status(201).json({
@@ -118,7 +141,8 @@ exports.createClient = catchAsync(async (req, res, next) => {
       },
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
+    res.status(500).json({ status: "error", message: err.message });
   }
 });
 

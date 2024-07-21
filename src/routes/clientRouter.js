@@ -1,12 +1,13 @@
 const express = require("express");
 const clientController = require("../controllers/clientController");
+const itemsController = require("../controllers/itemsController");
 
 const router = express.Router();
 
 router
   .route("/client")
   .get(clientController.getAllClients)
-  .post(clientController.createClient);
+  .post(itemsController.uploadImages, clientController.createClient);
 
 router
   .route("/upload/:id")

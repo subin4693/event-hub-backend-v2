@@ -23,6 +23,7 @@ const upload = multer({ storage });
 exports.uploadImages = upload.fields([
   { name: "images", maxCount: 10 },
   { name: "decorationImages", maxCount: 10 },
+  { name: "bestWork", maxCount: 10 },
 ]);
 
 const getImages = async (image) => {
@@ -151,7 +152,17 @@ exports.getSingleItemById = catchAsync(async (req, res, next) => {
 exports.getItemByUserId = async (req, res, next) => {
   try {
     const Items = await Item.find({ clientId: req.params.userId });
-    res.status(200).json({ Items });
+
+    let items = [];
+
+    for (let i = 0; i < Items.length; i++) {
+      let img = await getImages(Items[i].images);
+      items.push({
+        item: Items[i],
+        image: img,
+      });
+    }
+    res.status(200).json({ items });
   } catch (error) {
     console.error("Error:", error);
     next(error);
