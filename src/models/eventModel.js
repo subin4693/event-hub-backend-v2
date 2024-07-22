@@ -14,9 +14,11 @@ const eventSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    image: {
-      type: String,
-    },
+    images: [
+      {
+        type: String,
+      },
+    ],
     ticketPrice: {
       type: Number,
     },
@@ -36,9 +38,9 @@ const eventSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Item",
     },
-    isConfirmed: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: "String", //Booked Confirmed Rejected
+      default: "Booked",
     },
     dates: [
       {
@@ -53,6 +55,6 @@ const eventSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-const Event = mongoose.model("Event", decorationSchema);
+const Event = mongoose.model("Event", eventSchema);
 
 module.exports = Event;

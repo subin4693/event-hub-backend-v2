@@ -21,6 +21,6 @@ router.get("/bookings/:id", bookingController.getBookingsByClientId);
 //confirm bookings by client
 router.put("/bookings/confirm/:id", bookingController.confirmBooking);
 
-router.get("/events", bookingController.getEvents);
-router.get("/events/:id", bookingController.getEventById);
+// router.get("/events", bookingController.getEvents);
+// router.get("/events/:id", bookingController.getEventById);
 module.exports = router;

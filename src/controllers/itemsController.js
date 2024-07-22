@@ -115,23 +115,36 @@ exports.getItemsByType = catchAsync(async (req, res, next) => {
 });
 
 exports.getItem = catchAsync(async (req, res, next) => {
-  const items = await Item.find().populate("typeId");
+  // Fetch items without populating typeId
+  const items = await Item.find();
 
-  const updatedItemsPromises = items.map(async (item) => {
+  // Helper function to fetch images
+  const fetchImages = async (item) => {
     try {
       const images = await getImages(item.images);
       return { ...item.toObject(), images };
     } catch (error) {
       console.error(`Error fetching images for item ${item._id}:`, error);
-      return item;
+      return item.toObject();
     }
-  });
+  };
 
-  const updatedItems = await Promise.all(updatedItemsPromises);
+  // Group items by typeId
+  const groupedItems = {};
+
+  // Process each item
+  for (let item of items) {
+    const typeId = item.typeId.toString();
+    if (!groupedItems[typeId]) {
+      groupedItems[typeId] = [];
+    }
+    const updatedItem = await fetchImages(item);
+    groupedItems[typeId].push(updatedItem);
+  }
 
   res.status(200).json({
     message: "Success",
-    items: updatedItems,
+    items: groupedItems,
   });
 });
 
