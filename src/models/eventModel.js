@@ -1,5 +1,17 @@
 const mongoose = require("mongoose");
 
+const RejectedBySchema = new mongoose.Schema({
+  id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Item",
+    required: true,
+  },
+  type: {
+    type: String,
+    required: true,
+  },
+});
+
 const eventSchema = new mongoose.Schema(
   {
     userId: {
@@ -42,6 +54,7 @@ const eventSchema = new mongoose.Schema(
       type: "String", //Booked Confirmed Rejected
       default: "Booked",
     },
+    rejectedBy: [RejectedBySchema],
     dates: [
       {
         type: Date,
