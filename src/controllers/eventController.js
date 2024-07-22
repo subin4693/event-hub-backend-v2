@@ -5,6 +5,7 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const { default: mongoose } = require("mongoose");
 const { GridFSBucket } = require("mongodb");
+const Item = require("../models/itemsModel");
 
 const getImages = async (image) => {
   try {
@@ -127,7 +128,7 @@ exports.getAllEvents = catchAsync(async (req, res, next) => {
 exports.getEventsByUserId = catchAsync(async (req, res, next) => {
   const userId = req.params.userId;
   const Events = await Event.find({ userId }).populate("venue catering decoration photograph");
-  console.log(Events);
+
   let events = [];
   for (let i = 0; i < Events.length; i++) {
     let img = await getImages(Events[i].images);
@@ -136,5 +137,139 @@ exports.getEventsByUserId = catchAsync(async (req, res, next) => {
       image: img,
     });
   }
+  res.status(200).json({ message: "success", events });
+});
+exports.getEventsByClientId = catchAsync(async (req, res, next) => {
+  const clientId = req.params.clientId;
+  const Events = await Booking.find({ clientId }).populate("eventId");
+
+  let events = [];
+  for (let i = 0; i < Events.length; i++) {
+    let img = await getImages(Events[i]?.eventId?.images);
+    events.push({
+      item: Events[i],
+      image: img,
+    });
+  }
+  res.status(200).json({ message: "success", events });
+});
+
+///b 669e00735ba7aee3532a8e4e
+///c 669e00735ba7aee3532a8e4e
+
+exports.confirmEvent = catchAsync(async (req, res, next) => {
+  const bookingId = req.params.bookingId;
+  const booking = await Booking.findById(bookingId);
+  const clientId = booking.clientId;
+  if (!booking) {
+    return next(new AppError("No Bookings found", 404));
+  }
+  booking.isConfirmed = "Confirmed";
+  await booking.save();
+
+  const bookings = await Booking.find({ eventId: booking.eventId });
+
+  const allConfirmed = bookings.every((b) => b.isConfirmed == "Confirmed");
+  if (allConfirmed) {
+    await Event.findByIdAndUpdate(booking.eventId, { status: "Confirmed" });
+  }
+
+  const Events = await Booking.find({ clientId }).populate("eventId");
+
+  let events = [];
+  for (let i = 0; i < Events.length; i++) {
+    let img = await getImages(Events[i]?.eventId?.images);
+    events.push({
+      item: Events[i],
+      image: img,
+    });
+  }
+
+  // await Event.findByIdAndUpdate(eventId, { status: "Confirmed" });
+  res.status(200).json({ message: "success", events });
+});
+
+exports.rejectEvent = catchAsync(async (req, res, next) => {
+  const bookingId = req.params.bookingId;
+  const booking = await Booking.findById(bookingId);
+  if (!booking) {
+    return next(new AppError("No Bookings found", 404));
+  }
+  const clientId = booking.clientId;
+  const item = await Item.findById(booking.itemId)
+    .select("typeId")
+    .populate("typeId");
+
+  if (!item || !item.typeId) {
+    return next(new AppError("Item type not found", 404));
+  }
+
+  const itemType = item.typeId.type;
+
+  booking.isConfirmed = "Rejected";
+  await booking.save();
+
+  const rejectionObject = {
+    id: booking.itemId,
+    type: itemType, // Use the type retrieved from the populated typeId
+  };
+
+  await Event.findByIdAndUpdate(
+    booking.eventId,
+    {
+      $addToSet: { rejectedBy: rejectionObject },
+      status: "Rejected",
+      isPublished: false,
+    },
+    { new: true },
+  );
+
+  const Events = await Booking.find({ clientId }).populate("eventId");
+
+  let events = [];
+  for (let i = 0; i < Events.length; i++) {
+    let img = await getImages(Events[i]?.eventId?.images);
+    events.push({
+      item: Events[i],
+      image: img,
+    });
+  }
+
+  res.status(200).json({ message: "success", events });
+});
+
+exports.publishEvent = catchAsync(async (req, res, next) => {
+  const eventId = req.params.eventId;
+  const event = await Event.findByIdAndUpdate(eventId, { isPublished: true, status: "Confirmed" });
+  const userId = event.userId;
+  const Events = await Event.find({ userId }).populate("venue catering decoration photograph");
+
+  let events = [];
+  for (let i = 0; i < Events.length; i++) {
+    let img = await getImages(Events[i].images);
+    events.push({
+      item: Events[i],
+      image: img,
+    });
+  }
+
+  res.status(200).json({ message: "success", events });
+});
+
+exports.cancelEvent = catchAsync(async (req, res, next) => {
+  const eventId = req.params.eventId;
+  const event = await Event.findByIdAndUpdate(eventId, { isPublished: false, status: "Canceled" });
+  const userId = event.userId;
+  const Events = await Event.find({ userId }).populate("venue catering decoration photograph");
+
+  let events = [];
+  for (let i = 0; i < Events.length; i++) {
+    let img = await getImages(Events[i].images);
+    events.push({
+      item: Events[i],
+      image: img,
+    });
+  }
+
   res.status(200).json({ message: "success", events });
 });
