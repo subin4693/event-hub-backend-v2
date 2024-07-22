@@ -71,3 +71,40 @@ exports.getUserById = async (req, res, next) => {
   const users = await User.findById(req.params.id);
   res.status(200).json({ users });
 };
+
+// update user
+
+exports.updateUser = async (req, res, next) => {
+  const userExist = await User.findById(req.params.id);
+
+  if (!userExist) {
+    return next(new AppError("User not found"));
+  }
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          name: req.body.name,
+          email: req.body.email,
+          password: req.body.password,
+          role: userExist.role,
+        },
+      },
+      { new: true },
+    );
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        name: updatedUser.name,
+        email: updatedUser.email,
+        id: updatedUser._id,
+        role: updatedUser.role,
+      },
+    });
+  } catch (err) {
+    res.status(400).json({ message: err });
+  }
+};
