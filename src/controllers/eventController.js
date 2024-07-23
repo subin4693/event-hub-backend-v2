@@ -244,6 +244,12 @@ exports.getAllEvents = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllPublishedEvents = async (req, res, next) => {
+  const data = await getEvensByCondition({ isPublished: true });
+
+  res.status(200).json(data);
+};
+
 exports.getEventsByUserId = catchAsync(async (req, res, next) => {
   const userId = req.params.userId;
 
