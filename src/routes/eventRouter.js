@@ -8,6 +8,7 @@ router
   .route("/")
   .post(itemsController.uploadImages, eventController.createEvent)
   .get(eventController.getAllEvents);
+router.route("/published").get(eventController.getAllPublishedEvents);
 router.route("/:userId").get(eventController.getEventsByUserId);
 router.route("/client/:clientId").get(eventController.getEventsByClientId);
 

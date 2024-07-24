@@ -9,7 +9,7 @@ router.get("/:itemId", itemsController.getSingleItemById);
 router.get("/", itemsController.getItem);
 router.post("/create", itemsController.uploadImages, itemsController.createItems);
 router.delete("/delete/:id", itemsController.deleteItem);
-router.put("/edit/:id", itemsController.editItem);
+router.put("/edit/:id", itemsController.uploadImages, itemsController.editItem);
 router.get("/user/:userId", itemsController.getItemByUserId);
 
 module.exports = router;
