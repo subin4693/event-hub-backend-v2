@@ -258,17 +258,44 @@ exports.getEventsByUserId = catchAsync(async (req, res, next) => {
 
 exports.getEventsByClientId = catchAsync(async (req, res, next) => {
   const clientId = req.params.clientId;
-  const Events = await Booking.find({ clientId }).populate("eventId");
 
-  let events = [];
-  for (let i = 0; i < Events.length; i++) {
-    let img = await getImages(Events[i]?.eventId?.images);
-    events.push({
-      item: Events[i],
-      image: img,
-    });
+  const bookings = await Booking.find({ clientId }).populate("eventId userId");
+
+  let upcomingEvents = [];
+  let pastEvents = [];
+
+  const now = new Date();
+
+  for (let booking of bookings) {
+    const event = booking.eventId;
+
+    if (event && event.dates.length > 0) {
+      const latestDate = new Date(Math.max(...event.dates.map((date) => new Date(date))));
+
+      let images = [];
+      if (event.images && event.images.length > 0) {
+        images = await getImages(event.images);
+      }
+
+      const eventData = {
+        item: booking,
+        event: event,
+        images: images,
+      };
+
+      if (latestDate < now) {
+        pastEvents.push(eventData);
+      } else {
+        upcomingEvents.push(eventData);
+      }
+    }
   }
-  res.status(200).json({ message: "success", events });
+
+  res.status(200).json({
+    message: "success",
+    Upcoming: upcomingEvents,
+    Past: pastEvents,
+  });
 });
 
 ///b 669e00735ba7aee3532a8e4e
