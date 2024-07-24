@@ -97,6 +97,17 @@ exports.deleteItem = catchAsync(async (req, res, next) => {
 
 exports.editItem = catchAsync(async (req, res, next) => {
   const id = req.params.id;
+  console.log(id);
+  console.log(req.body);
+
+  const imageFiles = req.files.images ? req.files.images.map((file) => file.filename) : [];
+  const decorationFiles = req.files.decorationImages
+    ? req.files.decorationImages.map((file) => file.filename)
+    : [];
+
+  if (decorationFiles.length > 0) req.body.decorationImages = decorationFiles;
+  if (imageFiles.length > 0) req.body.images = imageFiles;
+
   const updatedItem = await Item.findOneAndUpdate({ _id: id }, req.body, { new: true });
 
   if (!updatedItem) {
