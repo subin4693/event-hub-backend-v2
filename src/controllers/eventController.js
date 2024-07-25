@@ -404,6 +404,14 @@ exports.cancelEvent = catchAsync(async (req, res, next) => {
   const eventId = req.params.eventId;
   const event = await Event.findByIdAndUpdate(eventId, { isPublished: false, status: "Canceled" });
   const userId = event.userId;
+
+  const bookings = await Booking.find({ eventId });
+
+  for (book of bookings) {
+    book.isConfirmed = "Canceled";
+    await book.save();
+  }
+
   const data = await getEvensByCondition({ userId: new mongoose.Types.ObjectId(userId) });
 
   res.status(200).json({
