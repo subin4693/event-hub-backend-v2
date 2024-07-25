@@ -175,8 +175,6 @@ const getEvensByCondition = async (condition) => {
 };
 
 exports.createEvent = catchAsync(async (req, res, next) => {
-  console.log("working fine");
-
   const imageFiles = req.files.images ? req.files?.images?.map((file) => file.filename) : [];
 
   if (imageFiles.length > 0) req.body.images = imageFiles;
@@ -331,7 +329,7 @@ exports.confirmEvent = catchAsync(async (req, res, next) => {
     let img = await getImages(Events[i]?.eventId?.images);
     events.push({
       item: Events[i],
-      image: img,
+      images: img,
     });
   }
 
@@ -381,7 +379,7 @@ exports.rejectEvent = catchAsync(async (req, res, next) => {
     let img = await getImages(Events[i]?.eventId?.images);
     events.push({
       item: Events[i],
-      image: img,
+      images: img,
     });
   }
 
@@ -412,5 +410,48 @@ exports.cancelEvent = catchAsync(async (req, res, next) => {
     message: "success",
     Upcoming: data.Upcoming,
     Past: data.Past,
+  });
+});
+
+exports.getEventByEventId = catchAsync(async (req, res, next) => {
+  const eventId = req.params.eventId;
+  const event = await Event.findById(eventId).populate(
+    "venue catering photograph decoration rejectedBy",
+  );
+
+  let venue, decoration, catering, photograph;
+  const eventImages = await getImages(event.images);
+
+  if (event?.decoration) {
+    decoration = {};
+    decoration.images = await getImages(event?.decoration?.images);
+    decoration.decorationImages = await getImages(event?.decoration?.decorationImages);
+    decoration.details = event.decoration;
+  }
+  if (event?.catering) {
+    catering = {};
+    catering.images = await getImages(event?.catering?.images);
+    catering.details = event.catering;
+  }
+  if (event?.venue) {
+    venue = {};
+    venue.images = await getImages(event?.venue?.images);
+    venue.details = event.venue;
+  }
+  if (event?.photograph) {
+    photograph = {};
+    photograph.images = await getImages(event?.photograph?.images);
+    photograph.details = event.photograph;
+  }
+
+  res.status(200).json({
+    message: "success",
+    data: {
+      event: { details: event, images: eventImages },
+      photograph,
+      decoration,
+      venue,
+      catering,
+    },
   });
 });

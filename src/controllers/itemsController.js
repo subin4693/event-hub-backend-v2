@@ -73,6 +73,7 @@ exports.createItems = catchAsync(async (req, res, next) => {
   const decorationFiles = req.files.decorationImages
     ? req?.files?.decorationImages?.map((file) => file.filename)
     : [];
+  console.log(decorationFiles.length);
 
   if (decorationFiles.length > 0) req.body.decorationImages = decorationFiles;
 

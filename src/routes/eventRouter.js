@@ -18,4 +18,6 @@ router.route("/reject/:bookingId").post(eventController.rejectEvent);
 router.route("/publish/:eventId").post(eventController.publishEvent);
 router.route("/publish/cancel/:eventId").post(eventController.cancelEvent);
 
+router.route("/single-event/:eventId").get(eventController.getEventByEventId);
+
 module.exports = router;
