@@ -179,14 +179,17 @@ exports.getItemByUserId = async (req, res, next) => {
     const Items = await Item.find({ clientId: req.params.userId });
 
     let items = [];
-
     for (let i = 0; i < Items.length; i++) {
       let img = await getImages(Items[i].images);
+      let decorationImages = await getImages(Items[i]?.decorationImages);
+
       items.push({
         item: Items[i],
         image: img,
+        decorationImages: decorationImages,
       });
     }
+
     res.status(200).json({ items });
   } catch (error) {
     console.error("Error:", error);
