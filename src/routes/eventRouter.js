@@ -19,5 +19,7 @@ router.route("/publish/:eventId").post(eventController.publishEvent);
 router.route("/publish/cancel/:eventId").post(eventController.cancelEvent);
 
 router.route("/single-event/:eventId").get(eventController.getEventByEventId);
+router.route("/edit/:eventId").put(eventController.editEventById);
+router.route("/edit/:eventId/:field").put(eventController.deleteFieldFromEvent);
 
 module.exports = router;

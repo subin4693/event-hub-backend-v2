@@ -455,3 +455,94 @@ exports.getEventByEventId = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.editEventById = catchAsync(async (req, res, next) => {
+  const eventId = req.params.eventId;
+  const { venue, catering, photograph, decoration } = req.body;
+
+  // Build the update object and the unset object
+  const updateData = {
+    userId: req.body.userId,
+    name: req.body.name,
+
+    description: req.body.description,
+    ticketPrice: req.body.ticketPrice || 0,
+    rejectedBy: [],
+    isPublished: false,
+    status: "Booked",
+  };
+
+  if (req?.body?.date) {
+    updateData.dates = req?.body?.date;
+  }
+
+  const unsetData = [];
+
+  // Conditionally add fields to update or remove them
+  if (JSON.parse(venue)?.id) {
+    updateData.venue = JSON.parse(venue).id;
+  } else {
+    // unsetData += "venue";
+    unsetData.push("venue");
+  }
+
+  if (JSON.parse(catering)?.id) {
+    updateData.catering = JSON.parse(catering).id;
+  } else {
+    unsetData.push("catering");
+
+    // unsetData += unsetData + " " + "catering";
+  }
+
+  if (JSON.parse(photograph)?.id) {
+    updateData.photograph = JSON.parse(photograph).id;
+  } else {
+    unsetData.push("photograph");
+    // unsetData += unsetData + " " + "photograph";
+    // unsetData.photograph = undefined;
+  }
+
+  if (JSON.parse(decoration)?.id) {
+    updateData.decoration = JSON.parse(decoration).id;
+  } else {
+    unsetData.push("decoration");
+  }
+
+  const newEvent = await Event.findByIdAndUpdate(eventId, updateData, { new: true });
+
+  await Booking.deleteMany({ eventId });
+
+  const services = [venue, catering, photograph, decoration];
+  for (const service of services) {
+    if (service) {
+      const parsedService = JSON.parse(service);
+      if (parsedService.id && parsedService.clientId) {
+        console.log("Service ID:", parsedService.id);
+        console.log("Client ID:", parsedService.clientId);
+
+        const booking = new Booking({
+          userId: req.body.userId,
+          clientId: parsedService.clientId,
+          itemId: parsedService.id,
+          eventId: newEvent._id,
+        });
+
+        console.log("Booking:", booking);
+        await booking.save();
+      }
+    }
+  }
+
+  res.status(201).json({ message: "success", event: newEvent });
+});
+
+exports.deleteFieldFromEvent = catchAsync(async (req, res, next) => {
+  const { eventId, field } = req.params;
+  const updatedEvent = await Event.findByIdAndUpdate(
+    eventId,
+    { $unset: { [field]: "" } },
+    { new: true }, // Return the updated document
+  );
+
+  res.status(200).json({ message: "Field removed successfully", event: updatedEvent });
+});
