@@ -88,7 +88,6 @@ exports.getImages = catchAsync(async (req, res, next) => {
 
 // * Create userDetail
 exports.createUserDetail = catchAsync(async (req, res, next) => {
-  console.log("create user function called");
   try {
     const user = await UserDetail.create(req.body);
 
@@ -117,7 +116,7 @@ exports.getUserDetailByID = catchAsync(async (req, res, next) => {
   }
 
   const nUser = await user[0].populate("userId");
-  console.log(user);
+
   res.status(200).json({
     status: "success",
     data: {
@@ -134,7 +133,6 @@ exports.updateUserDetail = catchAsync(async (req, res, next) => {
       runValidators: true,
     });
     const nUser = await user.populate("userId");
-    console.log(nUser);
 
     if (!user) {
       return next(new AppError("No user found with that ID"));

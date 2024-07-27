@@ -8,7 +8,6 @@ const AppError = require("../utils/appError");
 const Booked = require("../models/bookingModel");
 const User = require("../models/userModel");
 
-// * GridFS storage configuration
 const storage = new GridFsStorage({
   url: process.env.DATABASE_LOCAL,
   file: (req, file) => {
@@ -23,10 +22,8 @@ const storage = new GridFsStorage({
 
 const upload = multer({ storage });
 
-// * uploadImages
 exports.uploadImages = upload.array("files", 2);
 
-// * update Images
 exports.updateClientPhotos = catchAsync(async (req, res, next) => {
   req.body.bestWork = req.files.map((file) => file.filename);
 
@@ -65,6 +62,35 @@ async function getImagesByFilenames(filenames) {
 }
 
 // * Get Images with id
+async function getImagesByFilenames(filenames) {
+  const { db } = mongoose.connection;
+  const imageBucket = new GridFSBucket(db, { bucketName: "images" });
+
+  const imagePromises = filenames.map((filename) => {
+    return new Promise((resolve, reject) => {
+      const imageData = [];
+      const downloadStream = imageBucket.openDownloadStreamByName(filename);
+
+      downloadStream.on("data", function(data) {
+        imageData.push(data);
+      });
+
+      downloadStream.on("error", function() {
+        reject(new AppError(`${filename}, error: "Image not found" `, 400));
+      });
+
+      downloadStream.on("end", () => {
+        resolve({
+          filename,
+          data: Buffer.concat(imageData).toString("base64"),
+        });
+      });
+    });
+  });
+
+  return Promise.all(imagePromises.map((p) => p.catch((e) => e)));
+}
+
 exports.getImages = catchAsync(async (req, res, next) => {
   const client = await Client.findById(req.params.id);
 
@@ -76,9 +102,6 @@ exports.getImages = catchAsync(async (req, res, next) => {
   const imageBucket = new GridFSBucket(db, { bucketName: "images" });
 
   const filenames = client.bestWork;
-
-  // ? when query images with file names
-  // const filenames = req.query.filenames ? req.query.filenames.split(",") : [];
 
   if (!filenames.length) {
     return res.status(400).send({ error: "No filenames provided" });
@@ -117,7 +140,6 @@ exports.getImages = catchAsync(async (req, res, next) => {
   });
 });
 
-// * Get all Clients
 exports.getAllClients = catchAsync(async (req, res, next) => {
   const client = await Client.find();
 
@@ -130,7 +152,6 @@ exports.getAllClients = catchAsync(async (req, res, next) => {
   });
 });
 
-// * Create Client
 exports.createClient = catchAsync(async (req, res, next) => {
   try {
     const imageFiles = req.files.bestWork ? req.files?.bestWork?.map((file) => file.filename) : [];
@@ -146,6 +167,7 @@ exports.createClient = catchAsync(async (req, res, next) => {
       contact: req.body.contact,
       qId: req.body.qId,
       crNo: req.body.crNo,
+      bestWork: imageFiles,
       bestWork: imageFiles,
       description: req.body.description,
       availability: req.body.availability,
@@ -193,7 +215,6 @@ exports.createClient = catchAsync(async (req, res, next) => {
   }
 });
 
-// * Get Client by userId
 exports.getClientByID = catchAsync(async (req, res, next) => {
   const client = await Client.find({ userId: req.params.id });
 
@@ -223,7 +244,6 @@ exports.getClientByID = catchAsync(async (req, res, next) => {
   });
 });
 
-// * update client
 exports.updateClient = catchAsync(async (req, res, next) => {
   try {
     const imageFiles = req.files.bestWork ? req.files?.bestWork?.map((file) => file.filename) : [];
@@ -286,7 +306,6 @@ exports.updateClient = catchAsync(async (req, res, next) => {
   }
 });
 
-// * delete client
 exports.deleteClient = catchAsync(async (req, res, next) => {
   const client = await Client.findByIdAndDelete(req.params.id);
 
@@ -321,8 +340,6 @@ exports.clientBooked = catchAsync(async (req, res, next) => {
     },
   });
 });
-
-// * Get Client by clientId
 
 exports.getClientByClientID = catchAsync(async (req, res, next) => {
   const client = await Client.findById(req.params.id);
