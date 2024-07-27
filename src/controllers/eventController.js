@@ -467,7 +467,6 @@ exports.editEventById = catchAsync(async (req, res, next) => {
   const eventId = req.params.eventId;
   const { venue, catering, photograph, decoration } = req.body;
 
-  // Build the update object and the unset object
   const updateData = {
     userId: req.body.userId,
     name: req.body.name,
@@ -480,35 +479,33 @@ exports.editEventById = catchAsync(async (req, res, next) => {
 
   const unsetData = {};
 
-  // Conditionally add fields to update or prepare them to be removed
   if (JSON.parse(venue)?.id) {
     updateData.venue = JSON.parse(venue).id;
   } else {
-    unsetData.venue = ""; // Prepare to unset the field
+    unsetData.venue = "";
   }
 
   if (JSON.parse(catering)?.id) {
     updateData.catering = JSON.parse(catering).id;
   } else {
-    unsetData.catering = ""; // Prepare to unset the field
+    unsetData.catering = "";
   }
 
   if (JSON.parse(photograph)?.id) {
     updateData.photograph = JSON.parse(photograph).id;
   } else {
-    unsetData.photograph = ""; // Prepare to unset the field
+    unsetData.photograph = "";
   }
 
   if (JSON.parse(decoration)?.id) {
     updateData.decoration = JSON.parse(decoration).id;
   } else {
-    unsetData.decoration = ""; // Prepare to unset the field
+    unsetData.decoration = "";
   }
 
   console.log("Update Data:", updateData);
   console.log("Unset Data:", unsetData);
 
-  // Perform the update operation with $set and $unset
   const newEvent = await Event.findByIdAndUpdate(
     eventId,
     { $set: updateData, $unset: unsetData },
@@ -516,15 +513,13 @@ exports.editEventById = catchAsync(async (req, res, next) => {
   );
 
   const updatedEvnt = await Event.findByIdAndUpdate(eventId, { $unset: unsetData }, { new: true });
-  // Check if the update was successful
+
   if (!newEvent) {
     return res.status(404).json({ message: "Event not found" });
   }
 
-  // Clear bookings for the event
   await Booking.deleteMany({ eventId });
 
-  // Create new bookings for the provided services
   const services = [venue, catering, photograph, decoration];
   for (const service of services) {
     if (service) {
