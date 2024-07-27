@@ -463,7 +463,6 @@ exports.getEventByEventId = catchAsync(async (req, res, next) => {
     },
   });
 });
-
 exports.editEventById = catchAsync(async (req, res, next) => {
   const eventId = req.params.eventId;
   const { venue, catering, photograph, decoration } = req.body;
@@ -472,7 +471,6 @@ exports.editEventById = catchAsync(async (req, res, next) => {
   const updateData = {
     userId: req.body.userId,
     name: req.body.name,
-
     description: req.body.description,
     ticketPrice: req.body.ticketPrice || 0,
     rejectedBy: [],
@@ -480,46 +478,53 @@ exports.editEventById = catchAsync(async (req, res, next) => {
     status: "Booked",
   };
 
-  if (req?.body?.date) {
-    updateData.dates = req?.body?.date;
-  }
+  const unsetData = {};
 
-  const unsetData = [];
-
-  // Conditionally add fields to update or remove them
+  // Conditionally add fields to update or prepare them to be removed
   if (JSON.parse(venue)?.id) {
     updateData.venue = JSON.parse(venue).id;
   } else {
-    // unsetData += "venue";
-    unsetData.push("venue");
+    unsetData.venue = ""; // Prepare to unset the field
   }
 
   if (JSON.parse(catering)?.id) {
     updateData.catering = JSON.parse(catering).id;
   } else {
-    unsetData.push("catering");
-
-    // unsetData += unsetData + " " + "catering";
+    unsetData.catering = ""; // Prepare to unset the field
   }
 
   if (JSON.parse(photograph)?.id) {
     updateData.photograph = JSON.parse(photograph).id;
   } else {
-    unsetData.push("photograph");
-    // unsetData += unsetData + " " + "photograph";
-    // unsetData.photograph = undefined;
+    unsetData.photograph = ""; // Prepare to unset the field
   }
 
   if (JSON.parse(decoration)?.id) {
     updateData.decoration = JSON.parse(decoration).id;
   } else {
-    unsetData.push("decoration");
+    unsetData.decoration = ""; // Prepare to unset the field
   }
 
-  const newEvent = await Event.findByIdAndUpdate(eventId, updateData, { new: true });
+  console.log("Update Data:", updateData);
+  console.log("Unset Data:", unsetData);
 
+  // Perform the update operation with $set and $unset
+  const newEvent = await Event.findByIdAndUpdate(
+    eventId,
+    { $set: updateData, $unset: unsetData },
+    { new: true },
+  );
+
+  const updatedEvnt = await Event.findByIdAndUpdate(eventId, { $unset: unsetData }, { new: true });
+  // Check if the update was successful
+  if (!newEvent) {
+    return res.status(404).json({ message: "Event not found" });
+  }
+
+  // Clear bookings for the event
   await Booking.deleteMany({ eventId });
 
+  // Create new bookings for the provided services
   const services = [venue, catering, photograph, decoration];
   for (const service of services) {
     if (service) {
@@ -541,7 +546,7 @@ exports.editEventById = catchAsync(async (req, res, next) => {
     }
   }
 
-  res.status(201).json({ message: "success", event: newEvent });
+  res.status(201).json({ message: "success", event: newEvent, updatedEvnt });
 });
 
 exports.deleteFieldFromEvent = catchAsync(async (req, res, next) => {
