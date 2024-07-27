@@ -18,7 +18,7 @@ app.use(express.json({ limit: "50mb" }));
 const allowedOrigins = [
   "http://localhost:5173",
   "https://event-app-qatar.netlify.app",
-  "https://endearing-cat-2fc9f8.netlify.app",
+  "https://main--endearing-cat-2fc9f8.netlify.app",
 ];
 
 app.use(
