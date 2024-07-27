@@ -201,15 +201,14 @@ exports.createEvent = catchAsync(async (req, res, next) => {
     if (JSON.parse(service).id && JSON.parse(service).clientId) {
       const id = JSON.parse(service).id;
       const clientId = JSON.parse(service).clientId;
-      console.log(JSON.parse(service).id);
-      console.log(JSON.parse(service).clientId);
+
       const book = new Booking({
         userId: req.body.userId,
         clientId: clientId,
         itemId: id,
         eventId: newEvent._id,
       });
-      console.log(book);
+
       await book.save();
     }
   });
@@ -228,7 +227,7 @@ exports.createEvent = catchAsync(async (req, res, next) => {
   // });
 
   // await Promise.all(bookings);
-  console.log(newEvent);
+
   res.status(201).json({ message: "success", event: newEvent });
 });
 
@@ -503,9 +502,6 @@ exports.editEventById = catchAsync(async (req, res, next) => {
     unsetData.decoration = "";
   }
 
-  console.log("Update Data:", updateData);
-  console.log("Unset Data:", unsetData);
-
   const newEvent = await Event.findByIdAndUpdate(
     eventId,
     { $set: updateData, $unset: unsetData },
@@ -525,9 +521,6 @@ exports.editEventById = catchAsync(async (req, res, next) => {
     if (service) {
       const parsedService = JSON.parse(service);
       if (parsedService.id && parsedService.clientId) {
-        console.log("Service ID:", parsedService.id);
-        console.log("Client ID:", parsedService.clientId);
-
         const booking = new Booking({
           userId: req.body.userId,
           clientId: parsedService.clientId,
@@ -535,7 +528,6 @@ exports.editEventById = catchAsync(async (req, res, next) => {
           eventId: newEvent._id,
         });
 
-        console.log("Booking:", booking);
         await booking.save();
       }
     }

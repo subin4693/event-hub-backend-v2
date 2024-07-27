@@ -73,7 +73,6 @@ exports.createItems = catchAsync(async (req, res, next) => {
   const decorationFiles = req.files.decorationImages
     ? req?.files?.decorationImages?.map((file) => file.filename)
     : [];
-  console.log(decorationFiles.length);
 
   if (decorationFiles.length > 0) req.body.decorationImages = decorationFiles;
 
@@ -98,8 +97,6 @@ exports.deleteItem = catchAsync(async (req, res, next) => {
 
 exports.editItem = catchAsync(async (req, res, next) => {
   const id = req.params.id;
-  console.log(id);
-  console.log(req.body);
 
   const imageFiles = req.files.images ? req.files.images.map((file) => file.filename) : [];
   const decorationFiles = req.files.decorationImages

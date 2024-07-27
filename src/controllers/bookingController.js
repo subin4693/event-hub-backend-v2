@@ -58,7 +58,7 @@ exports.createBooking = catchAsync(async (req, res, next) => {
 
   itemIds.map(async (itemId) => {
     const clientId = await Item.findById(itemId).select("clientId");
-    console.log(clientId);
+   
     const newBooking = new Booking({
       ...req.body,
       clientId: clientId.clientId,

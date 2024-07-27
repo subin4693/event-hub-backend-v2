@@ -8,7 +8,6 @@ const AppError = require("../utils/appError");
 const Booked = require("../models/bookingModel");
 const User = require("../models/userModel");
 
-// * GridFS storage configuration
 const storage = new GridFsStorage({
   url: process.env.DATABASE_LOCAL,
   file: (req, file) => {
@@ -23,10 +22,8 @@ const storage = new GridFsStorage({
 
 const upload = multer({ storage });
 
-// * uploadImages
 exports.uploadImages = upload.array("files", 2);
 
-// * update Images
 exports.updateClientPhotos = catchAsync(async (req, res, next) => {
   req.body.bestWork = req.files.map((file) => file.filename);
 
@@ -34,7 +31,6 @@ exports.updateClientPhotos = catchAsync(async (req, res, next) => {
   res.send({ status: "success", client });
 });
 
-// * Get Images with id
 exports.getImages = catchAsync(async (req, res, next) => {
   const client = await Client.findById(req.params.id);
 
@@ -46,9 +42,6 @@ exports.getImages = catchAsync(async (req, res, next) => {
   const imageBucket = new GridFSBucket(db, { bucketName: "images" });
 
   const filenames = client.bestWork;
-
-  // ? when query images with file names
-  // const filenames = req.query.filenames ? req.query.filenames.split(",") : [];
 
   if (!filenames.length) {
     return res.status(400).send({ error: "No filenames provided" });
@@ -87,7 +80,6 @@ exports.getImages = catchAsync(async (req, res, next) => {
   });
 });
 
-// * Get all Clients
 exports.getAllClients = catchAsync(async (req, res, next) => {
   const client = await Client.find();
 
@@ -100,16 +92,10 @@ exports.getAllClients = catchAsync(async (req, res, next) => {
   });
 });
 
-// * Create Client
 exports.createClient = catchAsync(async (req, res, next) => {
   try {
-    // Handle files (if any)
-    // const files = req.files;
-    // const fileUrls = files.map((file) => file.filename);
-
     const imageFiles = req.files.bestWork ? req.files?.bestWork?.map((file) => file.filename) : [];
 
-    // Create client
     const client = await Client.create({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
@@ -121,15 +107,13 @@ exports.createClient = catchAsync(async (req, res, next) => {
       contact: req.body.contact,
       qId: req.body.qId,
       crNo: req.body.crNo,
-      bestWork: imageFiles, // Store filenames of uploaded images
+      bestWork: imageFiles,
       description: req.body.description,
       availability: req.body.availability,
     });
 
-    // Update user role
     await User.findByIdAndUpdate(req.body.userId, {
       role: "client",
-      // clientId: client._id,
     });
 
     const newClient = await Client.findById(client._id).populate("role");
@@ -146,7 +130,6 @@ exports.createClient = catchAsync(async (req, res, next) => {
   }
 });
 
-// * Get Client by userId
 exports.getClientByID = catchAsync(async (req, res, next) => {
   const client = await Client.find({ userId: req.params.id });
 
@@ -163,7 +146,6 @@ exports.getClientByID = catchAsync(async (req, res, next) => {
   });
 });
 
-// * update client
 exports.updateClient = catchAsync(async (req, res, next) => {
   try {
     const client = await Client.findByIdAndUpdate(req.params.id, req.body, {
@@ -185,7 +167,7 @@ exports.updateClient = catchAsync(async (req, res, next) => {
     console.log(err);
   }
 });
-// * delete client
+
 exports.deleteClient = catchAsync(async (req, res, next) => {
   const client = await Client.findByIdAndDelete(req.params.id);
 
@@ -221,11 +203,9 @@ exports.clientBooked = catchAsync(async (req, res, next) => {
   });
 });
 
-// * Get Client by clientId
 exports.getClientByClientID = catchAsync(async (req, res, next) => {
-  console.log("client");
   const client = await Client.findById(req.params.id);
-  console.log(client);
+
   if (!client) {
     return res.status(200).json({ message: "No client for this userid" });
   }
