@@ -18,7 +18,7 @@ router.route("/images/:id").get(clientController.getImages);
 router
   .route("/client/:id")
   .get(clientController.getClientByID)
-  .put(clientController.updateClient)
+  .put(itemsController.uploadImages, clientController.updateClient)
   .delete(clientController.deleteClient);
 
 router.get("/client/:clientId/bookings", clientController.clientBooked);
