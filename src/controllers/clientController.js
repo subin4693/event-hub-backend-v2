@@ -168,7 +168,6 @@ exports.createClient = catchAsync(async (req, res, next) => {
       qId: req.body.qId,
       crNo: req.body.crNo,
       bestWork: imageFiles,
-      bestWork: imageFiles,
       description: req.body.description,
       availability: req.body.availability,
     });
@@ -246,37 +245,12 @@ exports.getClientByID = catchAsync(async (req, res, next) => {
 
 exports.updateClient = catchAsync(async (req, res, next) => {
   try {
-    const imageFiles = req.files.bestWork ? req.files?.bestWork?.map((file) => file.filename) : [];
+    if (req.files.bestWork) req.body.bestWork = req.files?.bestWork?.map((file) => file.filename);
 
-    // await User.findByIdAndUpdate(req.body.userId, {
-    //   role: "client",
-    // });
-    console.log(imageFiles);
-
-    const client = await Client.findByIdAndUpdate(
-      req.params.id,
-      {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.email,
-        userId: req.body.userId,
-        role: req.body.role,
-        workExperience: req.body.workExperience,
-        location: req.body.location,
-        contact: req.body.contact,
-        qId: req.body.qId,
-        crNo: req.body.crNo,
-        bestWork: imageFiles,
-        description: req.body.description,
-        availability: req.body.availability,
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    ).populate("role");
-
-    console.log(client);
+    const client = await Client.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    }).populate("role");
 
     if (!client) {
       return next(new AppError("No client found with that ID"));
