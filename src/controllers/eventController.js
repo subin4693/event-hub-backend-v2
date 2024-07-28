@@ -187,26 +187,31 @@ exports.createEvent = catchAsync(async (req, res, next) => {
     description: req.body.description,
     images: imageFiles,
     ticketPrice: req.body.ticketPrice || 0,
-    venue: venue ? JSON.parse(venue).id : undefined,
-    catering: catering ? JSON.parse(catering).id : undefined,
-    photograph: photograph ? JSON.parse(photograph).id : undefined,
-    decoration: decoration ? JSON.parse(decoration).id : undefined,
+    venue: venue ? JSON.parse(venue)?.id : undefined,
+    catering: catering ? JSON.parse(catering)?.id : undefined,
+    photograph: photograph ? JSON.parse(photograph)?.id : undefined,
+    decoration: decoration ? JSON.parse(decoration)?.id : undefined,
     dates: req.body.dates || [],
   });
 
   await newEvent.save();
+  console.log(
+    "*************************************new event*********************************************",
+  );
+  console.log(newEvent);
+  console.log("**********************************************************************************");
 
   const services = [venue, catering, photograph, decoration];
   services.map(async (service) => {
-    if (JSON.parse(service).id && JSON.parse(service).clientId) {
-      const id = JSON.parse(service).id;
-      const clientId = JSON.parse(service).clientId;
+    if (JSON.parse(service)?.id && JSON.parse(service)?.clientId) {
+      const id = JSON.parse(service)?.id;
+      const clientId = JSON.parse(service)?.clientId;
 
       const book = new Booking({
-        userId: req.body.userId,
+        userId: req.body?.userId,
         clientId: clientId,
         itemId: id,
-        eventId: newEvent._id,
+        eventId: newEvent?._id,
       });
 
       await book.save();
