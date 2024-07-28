@@ -175,7 +175,11 @@ const getEvensByCondition = async (condition) => {
 };
 
 exports.createEvent = catchAsync(async (req, res, next) => {
+  console.log("requet reached");
   const imageFiles = req.files.images ? req.files?.images?.map((file) => file.filename) : [];
+
+  console.log("****************img files");
+  console.log(imageFiles);
 
   if (imageFiles.length > 0) req.body.images = imageFiles;
 
