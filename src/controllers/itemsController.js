@@ -125,7 +125,6 @@ exports.getItemsByType = catchAsync(async (req, res, next) => {
 });
 
 exports.getItem = catchAsync(async (req, res, next) => {
-  // Extract start and end dates from the request query
   const { start, end } = req.query;
 
   if (!start || !end) {
@@ -134,7 +133,6 @@ exports.getItem = catchAsync(async (req, res, next) => {
     });
   }
 
-  // Convert start and end date strings to Date objects
   const startDate = new Date(start);
   const endDate = new Date(end);
 
@@ -145,13 +143,12 @@ exports.getItem = catchAsync(async (req, res, next) => {
     });
   }
 
-  // Generate an array of all dates between startDate and endDate (inclusive)
   const dateRange = [];
   for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
     dateRange.push(new Date(d)); // Create a new date instance to avoid mutating `d`
   }
   console.log(dateRange);
-  // Fetch clients who are available throughout the entire date range
+
   const availableClients = await Client.find({
     availability: {
       $not: {
@@ -167,15 +164,13 @@ exports.getItem = catchAsync(async (req, res, next) => {
     },
   }).select("_id");
 
-  // Extract client IDs
   const availableClientIds = availableClients.map((client) => client._id);
   console.log(availableClientIds);
-  // Fetch items where the client is available
+
   const items = await Item.find({
     clientId: { $in: availableClientIds },
   });
 
-  // Helper function to fetch images
   const fetchImages = async (item) => {
     try {
       const images = await getImages(item.images);
@@ -186,10 +181,8 @@ exports.getItem = catchAsync(async (req, res, next) => {
     }
   };
 
-  // Group items by typeId
   const groupedItems = {};
 
-  // Process each item
   for (let item of items) {
     const typeId = item.typeId.toString();
     if (!groupedItems[typeId]) {
