@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
 
+function normalizeDate(date) {
+  const normalized = new Date(date);
+  normalized.setUTCHours(0, 0, 0, 0); // Set hours, minutes, seconds, and milliseconds to zero
+  return normalized;
+}
+
 const AvailabilitySchema = new mongoose.Schema({
   date: { type: Date, required: true },
   isAvailable: { type: Boolean, default: true },
@@ -25,7 +31,7 @@ const ClientSchema = new mongoose.Schema(
     crNo: { type: String, required: true },
     bestWork: [{ type: String }],
     description: { type: String, required: true },
-    availability: [{ type: Date }],
+    availability: [{ type: Date, set: normalizeDate }],
     catererDetails: CatererSchema,
   },
   {

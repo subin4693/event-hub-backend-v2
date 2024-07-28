@@ -1,4 +1,5 @@
 const Item = require("../models/itemsModel");
+const Client = require("../models/clientModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const multer = require("multer");
@@ -124,8 +125,55 @@ exports.getItemsByType = catchAsync(async (req, res, next) => {
 });
 
 exports.getItem = catchAsync(async (req, res, next) => {
-  // Fetch items without populating typeId
-  const items = await Item.find();
+  // Extract start and end dates from the request query
+  const { start, end } = req.query;
+
+  if (!start || !end) {
+    return res.status(400).json({
+      message: "Both start and end date query parameters are required.",
+    });
+  }
+
+  // Convert start and end date strings to Date objects
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  // Check for valid date range
+  if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) {
+    return res.status(400).json({
+      message: "Invalid start or end date. Please provide a valid date range.",
+    });
+  }
+
+  // Generate an array of all dates between startDate and endDate (inclusive)
+  const dateRange = [];
+  for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+    dateRange.push(new Date(d)); // Create a new date instance to avoid mutating `d`
+  }
+  console.log(dateRange);
+  // Fetch clients who are available throughout the entire date range
+  const availableClients = await Client.find({
+    availability: {
+      $not: {
+        $in: dateRange,
+      },
+      // availability: {
+      //   $not: {
+      //     $elemMatch: {
+      //       $in: dateRange,
+      //     },
+      //   },
+      // },
+    },
+  }).select("_id");
+
+  // Extract client IDs
+  const availableClientIds = availableClients.map((client) => client._id);
+  console.log(availableClientIds);
+  // Fetch items where the client is available
+  const items = await Item.find({
+    clientId: { $in: availableClientIds },
+  });
 
   // Helper function to fetch images
   const fetchImages = async (item) => {
