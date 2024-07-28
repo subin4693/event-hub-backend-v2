@@ -19,6 +19,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://event-app-qatar.netlify.app",
   "https://main--endearing-cat-2fc9f8.netlify.app",
+  "https://main--endearing-cat-2fc9f8.netlify.app/",
+  "https://trelloboard-clone.web.app"
 ];
 
 app.use(
