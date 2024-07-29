@@ -24,9 +24,7 @@ const app = require("./app");
 const DB = process.env.DATABASE_LOCAL;
 
 mongoose
-  .connect(DB, {
-    serverSelectionTimeoutMS: 5000,
-  })
+  .connect(DB, { serverSelectionTimeoutMS: 5000 })
   .then(() => console.log("DB connection successful!"))
   .catch((err) => console.error("DB connection error:", err));
 
@@ -48,7 +46,7 @@ mongoose
 //   next();
 // });
 
-const port = process.env.PORT || 3000;
+const port = process.env.X_ZOHO_CATALYST_LISTEN_PORT || 3000;
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });
