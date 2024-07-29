@@ -9,13 +9,20 @@ const mongoose = require("mongoose");
 
 const storage = new GridFsStorage({
   url: process.env.DATABASE_LOCAL,
+  options: { useNewUrlParser: true, useUnifiedTopology: true },
   file: (req, file) => {
-    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-      return {
-        bucketName: "images",
-        filename: `${Date.now()}_${file.originalname}`,
-      };
-    }
+    return new Promise((resolve, reject) => {
+      if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+        const filename = `${Date.now()}_${file.originalname}`;
+        const fileInfo = {
+          filename: filename,
+          bucketName: "images",
+        };
+        resolve(fileInfo);
+      } else {
+        reject(new AppError("Invalid file type", 400));
+      }
+    });
   },
 });
 
