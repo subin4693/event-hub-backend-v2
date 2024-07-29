@@ -25,10 +25,6 @@ const DB = process.env.DATABASE_LOCAL;
 
 mongoose
   .connect(DB, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
-    useCreateIndex: true,
     serverSelectionTimeoutMS: 5000,
   })
   .then(() => console.log("DB connection successful!"))
