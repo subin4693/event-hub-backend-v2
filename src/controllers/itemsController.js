@@ -26,6 +26,14 @@ const storage = new GridFsStorage({
   },
 });
 
+storage.on("connection", (db) => {
+  console.log("GridFS Storage is connected to database");
+});
+
+storage.on("connectionFailed", (err) => {
+  console.error("GridFS Storage connection failed:", err);
+});
+
 const upload = multer({ storage });
 
 exports.uploadImages = upload.fields([
