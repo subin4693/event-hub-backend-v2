@@ -23,7 +23,16 @@ const app = require("./app");
 //Local MonogoDB
 const DB = process.env.DATABASE_LOCAL;
 
-mongoose.connect(DB).then(() => console.log("DB connection successful!"));
+mongoose
+  .connect(DB, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+    useCreateIndex: true,
+    serverSelectionTimeoutMS: 5000,
+  })
+  .then(() => console.log("DB connection successful!"))
+  .catch((err) => console.error("DB connection error:", err));
 
 // // GridFS storage configuration
 // const storage = new GridFsStorage({
