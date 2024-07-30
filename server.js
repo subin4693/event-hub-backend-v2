@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+
 dotenv.config();
 // const { GridFsStorage } = require("multer-gridfs-storage");
 // const multer = require("multer");
@@ -14,36 +15,35 @@ process.on("uncaughtException", (err) => {
 dotenv.config({ path: "./src/config/config.env" });
 const app = require("./app");
 
-// MongoDB cluster
-// const DB = process.env.DATABASE_PROD.replace(
-//   '<PASSWORD>',
-//   process.env.DATABASE_PASSWORD
-// );
-
-//Local MonogoDB
 const DB = process.env.DATABASE_LOCAL;
 
-mongoose.connect(DB).then(() => console.log("DB connection successful!"));
+// mongoose
+//   .connect(DB, { serverSelectionTimeoutMS: 5000 })
+//   .then(() => console.log("DB connection successful!"))
+//   .catch((err) => console.error("DB connection error:", err));
+mongoose
+  .connect(DB, {
+    serverSelectionTimeoutMS: 5000,
+  })
+  .then(() => {
+    console.log("DB connection successful!");
 
-// // GridFS storage configuration
-// const storage = new GridFsStorage({
-//   url: DB,
-//   file: (req, file) => {
-//     return {
-//       bucketName: "uploads", // Bucket name in MongoDB
-//       filename: file.originalname,
-//     };
-//   },
-// });
+    // Create GridFS bucket after connection is successful
+    const connect = mongoose.connection;
+    let gfs;
 
-// const upload = multer({ storage });
+    connect.once("open", () => {
+      gfs = new mongoose.mongo.GridFSBucket(connect.db, {
+        bucketName: "images",
+      });
+      console.log("GridFS initialized successfully.");
+    });
+  })
+  .catch((err) => {
+    console.error("DB connection error:", err);
+  });
 
-// app.use((req, res, next) => {
-//   req.upload = upload;
-//   next();
-// });
-
-const port = process.env.PORT || 3000;
+const port = process.env.X_ZOHO_CATALYST_LISTEN_PORT || 3000;
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
 });

@@ -6,46 +6,64 @@ const multer = require("multer");
 const { GridFsStorage } = require("multer-gridfs-storage");
 const { GridFSBucket } = require("mongodb");
 const mongoose = require("mongoose");
+const crypto = require("crypto");
+const path = require("path");
+const dotenv = require("dotenv");
 
-mongoose
-  .connect(process.env.DATABASE_LOCAL)
-  .then(() => {
-    console.log("Connected to MongoDB!");
+dotenv.config();
 
-    // Define the GridFS storage configuration
-    const storage = new GridFsStorage({
-      url: process.env.DATABASE_LOCAL,
-      file: (req, file) => {
-        if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
-          return {
-            bucketName: "images", // Customize bucket name if needed
-            filename: `${Date.now()}_${file.originalname}`, // Generate unique filenames
+const storage = new GridFsStorage({
+  url: process.env.DATABASE_LOCAL,
+  file: (req, file) => {
+    return new Promise((resolve, reject) => {
+      if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+        crypto.randomBytes(16, (err, buf) => {
+          if (err) {
+            return reject(err);
+          }
+          const filename = buf.toString("hex") + path.extname(file.originalname);
+          const fileInfo = {
+            filename: filename,
+            bucketName: "images",
           };
-        } else {
-          return new AppError(400, "Invalid file type. Only JPEG and PNG images allowed.");
-        }
-      },
-      options: {
-        // Optional storage options (e.g., useNewUrlParser, useUnifiedTopology)
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      },
+          resolve(fileInfo); // Resolve the promise with fileInfo
+        });
+      } else {
+        reject(new Error("Invalid file type. Only JPEG and PNG images are allowed."));
+      }
     });
+  },
+  options: {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  },
+});
 
-    const upload = multer({ storage }); // Create the upload middleware
+// if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+//   return {
+//     bucketName: "images", // Customize bucket name if needed
+//     filename: `${Date.now()}_${file.originalname}`, // Generate unique filenames
+//   };
+// } else {
+//   return new AppError(400, "Invalid file type. Only JPEG and PNG images allowed.");
+// }
+//},
+// options: {
+//   // Optional storage options (e.g., useNewUrlParser, useUnifiedTopology)
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// },
+//});
 
-    exports.uploadImages = upload.fields([
-      { name: "images", maxCount: 10 },
-      { name: "decorationImages", maxCount: 10 },
-      { name: "bestWork", maxCount: 10 },
-    ]);
+const upload = multer({ storage }); // Create the upload middleware
 
-    // ... (your app routing and middleware setup)
-  })
-  .catch((err) => {
-    console.error("Error connecting to MongoDB:", err);
-    // Handle connection errors gracefully (e.g., restart server)
-  });
+exports.uploadImages = upload.fields([
+  { name: "images", maxCount: 10 },
+  { name: "decorationImages", maxCount: 10 },
+  { name: "bestWork", maxCount: 10 },
+]);
+
+// ... (your app routing and middleware setup)
 
 const getImages = async (image) => {
   try {
