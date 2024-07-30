@@ -12,7 +12,7 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-dotenv.config({ path: "./src/config/config.env" });
+// dotenv.config({ path: "./src/config/config.env" });
 const app = require("./app");
 
 const DB = process.env.DATABASE_LOCAL;
@@ -23,7 +23,7 @@ const DB = process.env.DATABASE_LOCAL;
 //   .catch((err) => console.error("DB connection error:", err));
 mongoose
   .connect(DB, {
-    serverSelectionTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 60000,
   })
   .then(() => {
     console.log("DB connection successful!");
@@ -33,9 +33,7 @@ mongoose
     let gfs;
 
     connect.once("open", () => {
-      gfs = new mongoose.mongo.GridFSBucket(connect.db, {
-        bucketName: "images",
-      });
+      gfs = Grid(connect.db);
       console.log("GridFS initialized successfully.");
     });
   })
